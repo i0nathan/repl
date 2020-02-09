@@ -1,55 +1,45 @@
 from github import Github
+from getpass import getpass
 
-import getpass
+# First create a Github instance:
 
-username = raw_input("Github username: ")
-password = getpass.getpass("Github password: ")
+# using username and password
+username = input("Github username: ")
+password = getpass("Github password: ")
 
-github = Github(username, password)
+g = Github(username, password)
 
-organization = github.get_user().get_orgs()[0]
+# Select a specific repo
+# repo_name = input("Repo to download: ")
 
-repository_name = raw_input("Github repository: ")
-repository = organization.get_repo(repository_name)
+# or using an access token
+# g = Github("access_token")
 
-branch_or_tag_to_download = raw_input("Branch or tag to download: ")
-sha = get_sha_for_tag(repository, branch_or_tag_to_download)
+# Github Enterprise with custom hostname
+# g = Github(base_url="https://{hostname}/api/v3", login_or_token="access_token")
 
-directory_to_download = raw_input("Directory to download: ")
-download_directory(repository, sha, directory_to_download)
+# Then play with your Github objects:
+# for repo in g.get_user().get_repos():
+        # print(repo.name)
 
+# repo = g.get_user().get_repo(repo_name)
+repo = g.get_repo("i0nathan/code_snippets")
+# branch_or_tag_to_download = input("Branch or tag to download: ")
+# sha = get_sha_for_tag(repo, branch_or_tag_to_download)
 
-def get_sha_for_tag(repository, tag):
-    """
-    Returns a comit PyGithub object for the specified repository and tag.
-    """
-    branches = repository.get_branches()
-    matched_branches = [match for match in branches if match.name == tag]
-    if not matched_tags:
-        raise ValueError('No Tag or Branch exists with that name')
-    return matched_tags[0].commit.sha
+# directory_to_download = input("Directory to download: ")
+# download_directory(repo, sha, directory_to_download)
 
-
-def download_directory(repository, sha, server_path):
-    """
-    Download all contents at server_path with commit tag sha in the
-    repository.
-    """
-    contents = repository.get_dir_contents(server_path, ref=sha)
-
-    for content in contents:
-        print("Processing %s" % content.path)
-        if content.type =='dir':
-            download_directory(repository, sha, content.path)
-        else:
-            try:
-                path = content.path
-                file_content = repository.get_contents(path, ref=sha)
-                file_data = base64.b64decode(file_content.content)
-                file_out = open(content.name, "w")
-                file_out.write(file_data)
-                file_out.close()
-            except (GithubException, IOError) as exc:
-                logging.error("Error processing %s: %s", content.path, exc)
-
+contents = repo.get_contents("")
+while contents:
+    file_content = contents.pop(0)
+    if file_content.type == "dir":
+        contents.extend(repo.get_contents(file_content.path))
+    else:
+        path = file_content.path
+        content = repo.get_contents(path)
+        file_data = content.content
+        print(content)
+        print(80*"-")
+        print(file_data)
 
