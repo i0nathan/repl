@@ -77,8 +77,8 @@ def download_directory(repository, sha, server_path):
                 # file_out = open(content.path, "w")
                 # file_out.write(file_data)
                 # file_out.close()
-            except (GithubException, IOError) as exc:
-                logging.error('Error processing %s: %s', content.path, exc)
+            except:
+                print('Error processing %s', content.path)
 
 
 if __name__ == '__main__':
